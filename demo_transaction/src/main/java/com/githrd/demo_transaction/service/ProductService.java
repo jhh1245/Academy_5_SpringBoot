@@ -1,9 +1,9 @@
-package service;
+package com.githrd.demo_transaction.service;
 
 import java.util.List;
 import java.util.Map;
 
-import vo.ProductVo;
+import com.githrd.demo_transaction.vo.ProductVo;
 
 public interface ProductService {
 	

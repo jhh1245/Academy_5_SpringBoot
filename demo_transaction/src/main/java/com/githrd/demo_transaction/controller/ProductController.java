@@ -1,5 +1,6 @@
-package controller;
+package com.githrd.demo_transaction.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +9,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import service.ProductService;
-import vo.ProductVo;
+import com.githrd.demo_transaction.service.ProductService;
+import com.githrd.demo_transaction.vo.ProductVo;
 
 @Controller
 public class ProductController {
@@ -20,7 +21,7 @@ public class ProductController {
 	@RequestMapping("/product/list.do")
 	public String list(Model model) {
 		
-		Map map = product_service.selectTotalMap();
+		Map<String, List<ProductVo>> map = product_service.selectTotalMap();
 		
 		model.addAttribute("map", map);
 		
@@ -68,7 +69,6 @@ public class ProductController {
 		try {
 			product_service.delete_in(idx);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -84,7 +84,6 @@ public class ProductController {
 		try {
 			product_service.delete_out(idx);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

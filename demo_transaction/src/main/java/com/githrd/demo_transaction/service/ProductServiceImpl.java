@@ -1,33 +1,35 @@
-package service;
+package com.githrd.demo_transaction.service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import dao.ProductDao;
-import vo.ProductVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import com.githrd.demo_transaction.dao.ProductInMapper;
+import com.githrd.demo_transaction.dao.ProductOutMapper;
+import com.githrd.demo_transaction.dao.ProductRemainMapper;
+import com.githrd.demo_transaction.vo.ProductVo;
+
+@Service
 public class ProductServiceImpl implements ProductService{
 
-	ProductDao product_in_dao;     // 입고 인터페이스
-	ProductDao product_out_dao;    // 출고 인터페이스
-	ProductDao product_remain_dao; // 재고 인터페이스
-	
-	
-	// Constructor Injection 
-	public ProductServiceImpl(ProductDao product_in_dao, ProductDao product_out_dao, ProductDao product_remain_dao) {
-		super();
-		this.product_in_dao = product_in_dao;
-		this.product_out_dao = product_out_dao;
-		this.product_remain_dao = product_remain_dao;
-	}
+	@Autowired
+	ProductInMapper productInDao;     // 입고 인터페이스
+
+	@Autowired
+	ProductOutMapper productOutDao;    // 출고 인터페이스
+
+	@Autowired
+	ProductRemainMapper productRemainDao; // 재고 인터페이스
 
 	@Override
 	public Map<String, List<ProductVo>> selectTotalMap() {
 
-		List<ProductVo> in_list     = product_in_dao.selectList();     // 입고목록 
-		List<ProductVo> out_list    = product_out_dao.selectList();    // 출고목록 
-		List<ProductVo> remain_list = product_remain_dao.selectList(); // 재고목록 
+		List<ProductVo> in_list     = productInDao.selectList();     // 입고목록 
+		List<ProductVo> out_list    = productOutDao.selectList();    // 출고목록 
+		List<ProductVo> remain_list = productRemainDao.selectList(); // 재고목록 
 		
 		
 		Map<String, List<ProductVo>> map = new HashMap<String, List<ProductVo>>();
@@ -38,26 +40,27 @@ public class ProductServiceImpl implements ProductService{
 		return map;
 	}
 
+
 	@Override
 	public int insert_in(ProductVo vo) throws Exception {
 		int res = 0;
 		
 		// 1. 입고 등록하기
-		res = product_in_dao.insert(vo);
+		res = productInDao.insert(vo);
 		
 		// 2. 재고 등록(수정처리)
-		ProductVo remainVo = product_remain_dao.selectOne(vo.getName());
+		ProductVo remainVo = productRemainDao.selectOneFromName(vo.getName());
 		
 		if(remainVo == null) {
 			// 등록 추가(등록 상품이 없다) 
-			res = product_remain_dao.insert(vo);
+			res = productRemainDao.insert(vo);
 		} else {
 			// 상품 기 등록 상태 : 수령 수정 
 			// 재고 수량 = 기존 재고 수량 + 추가 수량 
 			int cnt = remainVo.getCnt() + vo.getCnt();
 			remainVo.setCnt(cnt);
 			
-			res = product_remain_dao.update(remainVo);
+			res = productRemainDao.update(remainVo);
 		}
 		
 		
@@ -70,10 +73,10 @@ public class ProductServiceImpl implements ProductService{
 		int res = 0;
 		
 		// 1. 출고등록 
-		res = product_out_dao.insert(vo);
+		res = productOutDao.insert(vo);
 		
 		// 2. 재고 정보 얻어오기
-		ProductVo remainVo = product_remain_dao.selectOne(vo.getName());
+		ProductVo remainVo = productRemainDao.selectOneFromName(vo.getName());
 		
 		// 재고 처리 
 		if(remainVo == null) {
@@ -90,7 +93,7 @@ public class ProductServiceImpl implements ProductService{
 			
 			// 재고수량 수정 (정상처리) 
 			remainVo.setCnt(cnt);
-			res = product_remain_dao.update(remainVo);
+			res = productRemainDao.update(remainVo);
 		}
 		
 		
@@ -103,15 +106,15 @@ public class ProductServiceImpl implements ProductService{
 		int res = 0;
 		
 		//0.취소할 입고상품정보 얻어오기
-		ProductVo deleteVo = product_in_dao.selectOne(idx);
+		ProductVo deleteVo = productInDao.selectOne(idx);
 		
 		//1.입고상품 삭제
-		product_in_dao.delete(idx);
+		productInDao.delete(idx);
 		
 		
 		//2.재고상품 수정
 		// 원래 그 상품 재고 목록
-		ProductVo remain_vo = product_remain_dao.selectOne(deleteVo.getName()); 
+		ProductVo remain_vo = productRemainDao.selectOneFromName(deleteVo.getName()); 
 		
 		// 기존 재고 수량 - 입고 취소 수량 
 		int cnt = remain_vo.getCnt() - deleteVo.getCnt();
@@ -129,7 +132,7 @@ public class ProductServiceImpl implements ProductService{
 		
 		remain_vo.setCnt(cnt);		
 		
-		res = product_remain_dao.update(remain_vo);	
+		res = productRemainDao.update(remain_vo);	
 		
 		
 		return res;
@@ -143,24 +146,24 @@ public class ProductServiceImpl implements ProductService{
 		int res = 0;
 		
 		//0.취소할 출고상품정보 얻어오기
-		ProductVo deleteVo = product_out_dao.selectOne(idx);
+		ProductVo deleteVo = productOutDao.selectOne(idx);
 		
 		//1.출고상품 삭제
-		product_out_dao.delete(idx);
+		productOutDao.delete(idx);
 		
 		
 		//2.재고상품 수정
 		// 재고수량 = 원래 재고수량 + 취소할 출고수량
 		
 		// 원래 그 상품 재고 목록
-		ProductVo vo = product_remain_dao.selectOne(deleteVo.getName());
+		ProductVo vo = productRemainDao.selectOneFromName(deleteVo.getName());
 		System.out.println(vo.getCnt());
 		
 		int cnt = vo.getCnt() + deleteVo.getCnt();
 		
 		vo.setCnt(cnt);
 		
-		res = product_remain_dao.update(vo);	
+		res = productRemainDao.update(vo);	
 		
 		return res;
 	}
