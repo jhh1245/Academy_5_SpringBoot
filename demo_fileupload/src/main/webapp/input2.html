@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script>
+          
+       function send(f){
+           
+           let title = f.title.value.trim();
+           let photo1 = f.photo[0].value; // 같은이름이면 자바스크립트는 배열로 처리 
+           let photo2 = f.photo[1].value;
+
+           if(title == ""){
+             alert("제목을 입력하세요!");
+             f.title.value="";
+             f.title.focus();
+             return;
+           }
+
+           if(photo1 == ""){
+             alert("사진1을 선택하세요!");
+             return;
+           }
+
+           if(photo2 == ""){
+             alert("사진2을 선택하세요!");
+             return;
+           }
+
+           f.action = "upload2.do";
+           f.submit();
+       }   
+
+    </script>
+
+
+</head>
+<body>
+     <form method="POST" enctype="multipart/form-data">
+       제목 : <input name="title"><br>
+       사진1 : <input type="file" name="photo"><br>
+       사진2 : <input type="file" name="photo"><br>
+       <input type="button"  value="전송" onclick="send(this.form);">
+
+     </form>
+
+</body>
+</html>
